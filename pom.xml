@@ -15,6 +15,13 @@
         <maven.compiler.target>17</maven.compiler.target>
         <java.version>17</java.version>
     </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.21</version>
+        </dependency>
+    </dependencies>
     <build>
         <finalName>ZipHandler</finalName>
     </build>
