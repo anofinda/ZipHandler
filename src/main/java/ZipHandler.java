@@ -1,4 +1,5 @@
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 
 import java.io.*;
@@ -10,8 +11,36 @@ import java.util.zip.*;
  * @author dongyudeng
  */
 public class ZipHandler {
-    public static void unpack(String zipPath, String targetPath, String targetName) {
-
+    public static void unpack(String zipPath, String targetPath,String targetName) {
+        File zipFile = new File(zipPath),targetFile = new File(targetPath+"/"+targetName);
+        if(!zipFile.exists()||!zipPath.endsWith(".zip")||targetFile.exists()){
+            System.out.println("Error!");
+            return;
+        }
+        targetFile.mkdirs();
+        try(ZipArchiveInputStream inputStream = new ZipArchiveInputStream(new FileInputStream(zipFile))){
+            ZipArchiveEntry entry = null;
+            while((entry=inputStream.getNextZipEntry())!=null){
+                File file=new File(targetFile.getAbsolutePath()+"/"+ entry.getName());
+                if(!entry.isDirectory()){
+                    if(!file.exists()){
+                        file.createNewFile();
+                    }
+                    FileOutputStream outputStream = new FileOutputStream(file);
+                    byte[] buff=new byte[1024];
+                    int n;
+                    while((n =inputStream.read(buff))!=-1){
+                        outputStream.write(buff,0,n);
+                        outputStream.flush();
+                    }
+                    outputStream.close();
+                }else {
+                    if(!file.exists()){file.mkdirs();}
+                }
+            }
+        }catch (IOException ioException){
+            ioException.printStackTrace();
+        }
     }
 
     public static void pack(File nowFile, String nowFileName, ZipArchiveOutputStream zipOutputStream) throws IOException {
@@ -24,7 +53,7 @@ public class ZipHandler {
             zipOutputStream.write(Files.readAllBytes(nowFile.toPath()));
             zipOutputStream.closeArchiveEntry();
         } else {
-            zipOutputStream.putArchiveEntry(new ZipArchiveEntry(nowFileName));
+            zipOutputStream.putArchiveEntry(new ZipArchiveEntry(nowFileName+"/"));
             zipOutputStream.closeArchiveEntry();
             File[] children = nowFile.listFiles();
             if(children!=null){
@@ -52,13 +81,12 @@ public class ZipHandler {
         Scanner scanner = new Scanner(System.in);
         String sourcePath = scanner.nextLine(), targetPath = scanner.nextLine(), zipName = scanner.nextLine();
         pack(sourcePath, targetPath, zipName);
-        scanner.close();
     }
 
     public static void doUnpack() {
         Scanner scanner = new Scanner(System.in);
-        String zipPath = scanner.nextLine(), targetPath = scanner.nextLine(), targetName = scanner.nextLine();
-        unpack(zipPath, targetPath, targetName);
+        String zipPath = scanner.nextLine(), targetPath = scanner.nextLine(),targetName=scanner.nextLine();
+        unpack(zipPath, targetPath,targetName);
     }
 
     public static void main(String[] args) throws IOException {
